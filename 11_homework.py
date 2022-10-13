@@ -21,13 +21,15 @@ class Record:
 
 
     def add_phone(self, new_phone):
-        if Phone.phone_validation(new_phone):
+        if not Phone.phone_validation(new_phone):
+            print('Enter phone number as "0987654321" or "+3987654321"')
             return
         self.phones.append(Phone(new_phone))
 
     
     def change_phone(self, old_phone, new_phone):
-        if Phone.phone_validation(new_phone):
+        if not Phone.phone_validation(new_phone):
+            print('Enter phone number as "0987654321" or "+3987654321"')
             return
         for phone in self.phones:
             if phone.value == old_phone:
@@ -47,6 +49,7 @@ class Record:
 
 
     def add_birthday(self, birthday):
+        if not Birthday:
             bday = Birthday()
             bday.value = birthday
             self.birthday = bday
@@ -69,8 +72,18 @@ class Record:
 
 
 class Field:
-    def __init__(self) -> None:
+    def __init__(self):
         self.value = None
+
+
+    @property
+    def value(self):
+        return self._value
+
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
 
 class Name(Field):
@@ -79,31 +92,29 @@ class Name(Field):
 
 
 class Phone(Field):
-    def __init__(self, phone) -> None:
-        self.value = phone
+    @Field.value.setter
+    def value(self, phone):
+        self._value = phone
+    
     
     @classmethod
     def phone_validation(cls, value):
-        while True:
-            try:
-                if not 10 <= len(value) <= 12:
-                    return False
-            except:
-                print('Enter phone number as "0987654321" or "+3987654321"')
-            
-            else:
-                 print('Valid phone number')
-                 return True
-            break
-                    # Phone(input('Enter valid phone: '))
-                    # return False
+        return 10 <= len(value) <= 12
+
 
     def __repr__(self) -> str:
         return self.value
 
 
 class Birthday(Field):
-    pass
+    @Field.value.setter
+    def value(self, birthday):
+        self._value = datetime.strptime(birthday, '%Y.%m.%d').date()
+
+
+    @classmethod
+    def birthday_validation(cls, value):
+        return 0 < int(value.split('.')[0]) <= datetime.now().date().year and 0 < int(value.split('.')[1]) <= 12 and 0 < int(value.split('.')[2]) <= 31
 
 
 addressbook = AddressBook()
@@ -117,10 +128,6 @@ def input_error(func):
             print(f'Unknown command "{error.args[0]}". Try again..')
         except TypeError:
             print(f'Wrong input. Try again..')
-        # except IndexError:
-        #     print(f'invalid command syntax. Try again..')
-        # except ValueError as error:
-        #     print(f'Error,{error.args[0]}. Try again...')
     return wrapper
 
 
@@ -145,7 +152,7 @@ def add_phone_func(user_input):
         add_record = Record(user_input[1])
         add_record.add_phone(user_input[2])
         addressbook.add_record(add_record)
-        print(f'New contact added')
+        # print(f'New contact added')
     else:
         add_phone = addressbook.data[user_input[1]]
         add_phone.add_phone(user_input[2])
@@ -188,6 +195,7 @@ def remove_phone_func(user_input):
     else:
         print(f"Contact '{user_input[1]}' doesn't exist")
 
+
 @input_error
 def set_birthday(user_input):
     if user_input[1] in addressbook.data:
@@ -197,12 +205,14 @@ def set_birthday(user_input):
     else:
         print(f"Contact '{user_input[1]}' doesn't exist")
 
+
 @input_error
 def show_birthday(user_input):
     if user_input[1] in addressbook.data:
         addressbook.data[user_input[1]].days_to_birthday()
     else:
         print(f"Contact '{user_input[1]}' doesn't exist")
+
 
 @input_error
 def show_all_func(*args):
