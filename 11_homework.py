@@ -6,9 +6,8 @@ class AddressBook(UserDict):
     def add_record(self, record):
         self.data[record.name.value] = record
 
-
     def iterator(self, page_number, num_of_records):
-        new_data= list(self.data.items())
+        new_data = list(self.data.items())
         total_items = page_number * num_of_records
         yield list(new_data[(total_items - num_of_records):total_items])
 
@@ -19,26 +18,25 @@ class Record:
         self.phones = []
         self.birthday = None
 
-
     def add_phone(self, new_phone):
-        if not Phone.phone_validation(new_phone):
-            print('Enter phone number as "0987654321" or "+3987654321"')
-            return
-        self.phones.append(Phone(new_phone))
+        try:
+            if not Phone.phone_validation(new_phone):
+                raise ValueError
+        except ValueError:
+            self.phones.append(Phone(new_phone))
 
-    
     def change_phone(self, old_phone, new_phone):
-        if not Phone.phone_validation(new_phone):
-            print('Enter phone number as "0987654321" or "+3987654321"')
-            return
-        for phone in self.phones:
-            if phone.value == old_phone:
-                self.phones.append(Phone(new_phone))
-                self.phones.remove(phone)
-                print(f'Phone number has been changed')
-            else:
-                print("Phone number doesn't exist")
-
+        try:
+            if not Phone.phone_validation(new_phone):
+                raise ValueError
+        except ValueError:
+            # print('Enter phone number as "0987654321" or "+3987654321"')
+            for phone in self.phones:
+                if phone.value == old_phone:
+                    self.phones.append(Phone(new_phone))
+                    self.phones.remove(phone)
+                else:
+                    print("Phone number doesn't exist")
 
     def remove_phone(self, old_phone):
         for phone in self.phones:
@@ -47,13 +45,11 @@ class Record:
             else:
                 print("Phone number does't exist")
 
-
     def add_birthday(self, birthday):
         if not Birthday:
             bday = Birthday()
             bday.value = birthday
             self.birthday = bday
-
 
     def days_to_birthday(self):
         if self.birthday:
@@ -61,11 +57,11 @@ class Record:
             if self.birthday.value.replace(year=today.year) >= today:
                 result = self.birthday.value.replace(year=today.year) - today
             else:
-                result = self.birthday.value.replace(year=today.year) - today.replace(year=today.year - 1)
+                result = self.birthday.value.replace(
+                    year=today.year) - today.replace(year=today.year - 1)
             print(result)
         else:
             print('Empty')
-
 
     def __repr__(self) -> str:
         return f'{self.phones}'
@@ -75,11 +71,9 @@ class Field:
     def __init__(self):
         self.value = None
 
-
     @property
     def value(self):
         return self._value
-
 
     @value.setter
     def value(self, value):
@@ -95,12 +89,10 @@ class Phone(Field):
     @Field.value.setter
     def value(self, phone):
         self._value = phone
-    
-    
+
     @classmethod
     def phone_validation(cls, value):
         return 10 <= len(value) <= 12
-
 
     def __repr__(self) -> str:
         return self.value
@@ -110,7 +102,6 @@ class Birthday(Field):
     @Field.value.setter
     def value(self, birthday):
         self._value = datetime.strptime(birthday, '%Y.%m.%d').date()
-
 
     @classmethod
     def birthday_validation(cls, value):
@@ -152,7 +143,7 @@ def add_phone_func(user_input):
         add_record = Record(user_input[1])
         add_record.add_phone(user_input[2])
         addressbook.add_record(add_record)
-        # print(f'New contact added')
+        print(f'New contact added')
     else:
         add_phone = addressbook.data[user_input[1]]
         add_phone.add_phone(user_input[2])
@@ -165,6 +156,7 @@ def change_phone_func(user_input):
         old_phone = input('Enter phone number to change: ')
         renew_phone = addressbook.data[user_input[1]]
         renew_phone.change_phone(old_phone, user_input[2])
+        print(f'Phone number {old_phone} has been changed to {user_input[2]}')
     else:
         print(f"Contact {user_input[1]} doesn't exist")
 
@@ -172,7 +164,8 @@ def change_phone_func(user_input):
 @input_error
 def phone_func(user_input):
     if user_input[1] in addressbook.data:
-        print(f'{user_input[1]} has {addressbook.data[user_input[1]]} phone number')
+        print(
+            f'{user_input[1]} has {addressbook.data[user_input[1]]} phone number')
     else:
         print(f"Contact '{user_input[1]}' doesn't exist")
 
