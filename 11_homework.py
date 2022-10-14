@@ -35,7 +35,7 @@ class Record:
     def add_phone(self, new_phone):
         if not Phone.phone_validation(new_phone):
             add_phone = Phone()
-            add_phone._value = new_phone
+            add_phone.value = new_phone
             self.phones.append(add_phone)
 
 
