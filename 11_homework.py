@@ -2,9 +2,21 @@ from collections import UserDict
 from datetime import datetime
 
 
+def input_error(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except (KeyError, IndexError, ValueError) as error:
+            print(f'Unknown command "{error.args[0]}". Try again..')
+        except TypeError:
+            print(f'Wrong input. Try again..')
+    return wrapper
+
+
 class AddressBook(UserDict):
     def add_record(self, record):
         self.data[record.name.value] = record
+
 
     def iterator(self, page_number, num_of_records):
         new_data = list(self.data.items())
@@ -18,38 +30,43 @@ class Record:
         self.phones = []
         self.birthday = None
 
-    def add_phone(self, new_phone):
-        try:
-            if not Phone.phone_validation(new_phone):
-                raise ValueError
-        except ValueError:
-            self.phones.append(Phone(new_phone))
 
+    @input_error
+    def add_phone(self, new_phone):
+        if not Phone.phone_validation(new_phone):
+            add_phone = Phone()
+            add_phone._value = new_phone
+            self.phones.append(add_phone)
+
+
+    @input_error
     def change_phone(self, old_phone, new_phone):
-        try:
-            if not Phone.phone_validation(new_phone):
-                raise ValueError
-        except ValueError:
-            # print('Enter phone number as "0987654321" or "+3987654321"')
+        if not Phone.phone_validation(new_phone):
             for phone in self.phones:
                 if phone.value == old_phone:
-                    self.phones.append(Phone(new_phone))
+                    new_pn = Phone()
+                    new_pn.value = new_phone
+                    self.phones.append(new_pn)
                     self.phones.remove(phone)
-                else:
-                    print("Phone number doesn't exist")
+        else:
+            print("Phone number doesn't exist")
+
 
     def remove_phone(self, old_phone):
         for phone in self.phones:
             if phone.value == old_phone:
                 self.phones.remove(phone)
-            else:
-                print("Phone number does't exist")
+        else:
+            print("Phone number does't exist")
 
+
+    @input_error
     def add_birthday(self, birthday):
-        if not Birthday:
+        if not Birthday.birthday_validation(birthday):
             bday = Birthday()
             bday.value = birthday
             self.birthday = bday
+
 
     def days_to_birthday(self):
         if self.birthday:
@@ -63,6 +80,7 @@ class Record:
         else:
             print('Empty')
 
+
     def __repr__(self) -> str:
         return f'{self.phones}'
 
@@ -71,9 +89,11 @@ class Field:
     def __init__(self):
         self.value = None
 
+
     @property
     def value(self):
         return self._value
+
 
     @value.setter
     def value(self, value):
@@ -90,9 +110,11 @@ class Phone(Field):
     def value(self, phone):
         self._value = phone
 
+
     @classmethod
     def phone_validation(cls, value):
         return 10 <= len(value) <= 12
+
 
     def __repr__(self) -> str:
         return self.value
@@ -103,23 +125,13 @@ class Birthday(Field):
     def value(self, birthday):
         self._value = datetime.strptime(birthday, '%Y.%m.%d').date()
 
+
     @classmethod
     def birthday_validation(cls, value):
         return 0 < int(value.split('.')[0]) <= datetime.now().date().year and 0 < int(value.split('.')[1]) <= 12 and 0 < int(value.split('.')[2]) <= 31
 
 
 addressbook = AddressBook()
-
-
-def input_error(func):
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except (KeyError, IndexError, ValueError) as error:
-            print(f'Unknown command "{error.args[0]}". Try again..')
-        except TypeError:
-            print(f'Wrong input. Try again..')
-    return wrapper
 
 
 @input_error
